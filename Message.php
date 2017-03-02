@@ -17,6 +17,8 @@ use nterms\mailqueue\models\Queue;
  */
 class Message extends \yii\swiftmailer\Message
 {
+    public $queueItemClass;
+    
     /**
      * Enqueue the message storing it in database.
      *
@@ -29,7 +31,7 @@ class Message extends \yii\swiftmailer\Message
             $time_to_send = time();
         }
 
-        $item = new Queue();
+        $item = Yii::createObject($this->queueItemClass);
 
         $item->subject = $this->getSubject();
         $item->attempts = 0;

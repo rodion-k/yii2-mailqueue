@@ -69,6 +69,11 @@ class MailQueue extends Mailer
 	 * @var integer maximum number of attempts to try sending an email out.
 	 */
 	public $maxAttempts = 3;
+    
+    /**
+     * @var string queue item class name
+     */
+    public $itemClass = 'nterms\mailqueue\models\Queue';
 
 	/**
 	 * Initializes the MailQueue component.
@@ -76,6 +81,8 @@ class MailQueue extends Mailer
 	public function init()
 	{
 		parent::init();
+        
+        $this->messageConfig = array_merge(['queueItemClass' => $this->itemClass], $this->messageConfig);
 	}
 
 	/**
@@ -91,7 +98,8 @@ class MailQueue extends Mailer
 
 		$success = true;
 
-		$items = Queue::find()->where(['and', ['sent_time' => NULL], ['<', 'attempts', $this->maxAttempts], ['<=', 'time_to_send', date('Y-m-d H:i:s')]])->orderBy(['created_at' => SORT_ASC])->limit($this->mailsPerRound);
+        $itemClass = $this->itemClass;
+		$items = $itemClass::find()->where(['and', ['sent_time' => NULL], ['<', 'attempts', $this->maxAttempts], ['<=', 'time_to_send', date('Y-m-d H:i:s')]])->orderBy(['created_at' => SORT_ASC])->limit($this->mailsPerRound);
 		foreach ($items->each() as $item) {
 		    if ($message = $item->toMessage()) {
 			$attributes = ['attempts', 'last_attempt_time'];
